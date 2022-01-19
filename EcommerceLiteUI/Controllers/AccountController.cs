@@ -60,10 +60,12 @@ namespace EcommerceLiteUI.Controllers
                     Name = model.Name,
                     Surname = model.Surname,
                     Email = model.Email,
-                    ActivationCode = theActivationCode
+                    ActivationCode = theActivationCode,
+                    UserName=model.Email,
+                    PhoneNumber="05984567835"
                 };
-                var theresult = myUsermanager.CreateAsync(newUser, model.Password);
-                if (theresult.Result.Succeeded)
+                var theResult = myUsermanager.CreateAsync(newUser, model.Password);
+                if (theResult.Result.Succeeded)
                 {
                     //AspNetUsers tablosuna kayıt gerçekleşirse yeni kayıt olmuş bu kişiyi pasif tablosuna ekleyeceğiz.
                     //Kişi kendisine gelen aktifleşme işlemini yaparsa pasifkullanıcılar tablosundan kendisini silip olması gereken roldeki tabloya ekleyeceğiz.

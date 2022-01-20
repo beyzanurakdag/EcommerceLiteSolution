@@ -74,9 +74,9 @@ namespace EcommerceLiteUI.Controllers
                     {
                         TCNumber = model.TCNumber,
                         UserId = newUser.Id,
-                        TargetRole = TheIdentityRoles.Customer
+                        TargetRole = TheIdentityRoles.Customer,
+                        LastActiveTime=DateTime.Now
                     };
-
                     myPassiveUserRepo.Insert(newPassiveUser);
                     string siteUrl =
                          Request.Url.Scheme + Uri.SchemeDelimiter
@@ -134,7 +134,8 @@ namespace EcommerceLiteUI.Controllers
                         Customer newCustomer = new Customer() 
                         { 
                             TCNumber=thePassiveUser.TCNumber,
-                            UserId=theUser.Id
+                            UserId=theUser.Id,
+                            LastActiveTime=DateTime.Now
                         };
                         myCustomerRepo.Insert(newCustomer);
                         //Pasif tablosundan bu kayıt silinsin
@@ -163,7 +164,7 @@ namespace EcommerceLiteUI.Controllers
         {
             try
             {
-                if (HttpContext.User.Identity.IsAuthenticated)
+                if (HttpContext.User.Identity.IsAuthenticated && ReturnUrl!=null)
                 {
                     var url = ReturnUrl.Split('/');
                 }
@@ -351,8 +352,8 @@ namespace EcommerceLiteUI.Controllers
                 {
                     To = theUser.Email,
                     Subject = "EcommerceLite Site - Şifreniz Yenilendi",
-                    Message = $"Merhaba {theUser.Name} {theUser.Surname} <br/>Yeni Şifreniz :<b>{randomPassword}</b>" +
-                     $"Sisteme giriş yapmak için<b><a href='{siteUrl}/Account/Login?email={theUser.Email}'>BURAYA</a></b> tıklayınız."
+                    Message = $"Merhaba {theUser.Name} {theUser.Surname} <br/>Yeni Şifreniz :<b>{randomPassword}</b><br/>" +
+                     $"Sisteme giriş yapmak için <b><a href='{siteUrl}/Account/Login?email={theUser.Email}'>BURAYA</a></b> tıklayınız."
                 });
                 ViewBag.TheResult = "Email adresinize yeni şifreniz gönderilmiştir";
                 return View();

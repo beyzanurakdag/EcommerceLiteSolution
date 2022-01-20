@@ -27,7 +27,7 @@ namespace EcommerceLiteUI.Controllers
         UserStore<ApplicationUser> myUserStore = MembershipTools.NewUserStore();
         RoleManager<ApplicationRole> myRoleManager = MembershipTools.NewRoleManager();
         [HttpGet]
-       public ActionResult Register()
+        public ActionResult Register()
         {
             return View();
         }
@@ -243,6 +243,18 @@ namespace EcommerceLiteUI.Controllers
         [HttpGet]
         public ActionResult UpdatePassword()
         {
+            var theUser = myUsermanager.FindById(HttpContext.User.Identity.GetUserId());
+            if (theUser!=null)
+            {
+                ProfileViewModel model = new ProfileViewModel() 
+                { 
+                    Name=theUser.Name,
+                    Surname=theUser.Surname,
+                    Email=theUser.Email,
+                    Username=theUser.UserName
+                };
+                return View(model);
+            }
             return View();
         }
         [HttpPost]
@@ -258,15 +270,14 @@ namespace EcommerceLiteUI.Controllers
                     return View(model);
                 }
                 var theUser = myUsermanager.FindById(HttpContext.User.Identity.GetUserId());
-                var theCheckUser = myUsermanager.Find(theUser.UserName, model.OldPassword);
+                var theCheckUser = myUsermanager.Find(theUser.UserName, model.CurrentPassword);
                 if (theCheckUser==null)
                 {
                     ModelState.AddModelError("", "Mevcut şifrenizi yanlış girdiniz!");
                     return View();
                 }
                 await myUserStore.SetPasswordHashAsync(theUser, myUsermanager.PasswordHasher.HashPassword(model.NewPassword));
-                await myUserStore.UpdateAsync(theUser);
-                await myUserStore.Context.SaveChangesAsync();
+                await myUsermanager.UpdateAsync(theUser);
                 TempData["PasswordUpdated"] = "Şifreniz değiştirilmiştir!";
                 HttpContext.GetOwinContext().Authentication.SignOut();
                 return RedirectToAction("Login", "Account",new { email=theUser.Email});
@@ -305,11 +316,16 @@ namespace EcommerceLiteUI.Controllers
                     ModelState.AddModelError("", "Kullanıcı bulunamadığı için işlem yapılamıyor.");
                     return View(model);
                 }
+               
+                if (myUsermanager.PasswordHasher.VerifyHashedPassword(theUser.PasswordHash, model.CurrentPassword)==PasswordVerificationResult.Failed)
+                {
+                    ModelState.AddModelError("", "Mevcut şifrenizi yanlış girdiğiniz için bilgilerinizi güncelleyemiyoruz.");
+                    return View(model);
+                }
                 theUser.Name = model.Name;
                 theUser.Surname = model.Surname;
                 //TODO:telefon numarası eklenebilir
-                await myUserStore.UpdateAsync(theUser);
-                await myUserStore.Context.SaveChangesAsync();
+                await myUsermanager.UpdateAsync(theUser);
                 ViewBag.TheResult = "Bilgileriniz güncelleşmiştir";
                 var newModel = new ProfileViewModel()
                 {

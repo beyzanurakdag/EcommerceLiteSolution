@@ -43,11 +43,25 @@
 
                 </div>
 
-                <div>
-                    <button type="submit" value="Guncelle" class="btn btn-default pull-right" style="background-color:#D10024; color:white;"><b>Profilimi Güncelle</b></button>
+                <div class="form-group">
+                    @Html.Label("Mevcut Şifreniz:")
+                    @Html.PasswordFor(x => x.CurrentPassword, new { @class = "form-control" }) <br />
+                </div>
+
+                <div class="pull-right">
+                    <input type="button" value="Şifremi Değiştir" onclick="gotoupdatepasswordpage()" class="btn btn-default " style="background-color: white; color: #D10024; font-weight: bold; margin-right:5px">
+
+                    <button type="submit" value="Guncelle" class="btn btn-default" style="background-color:#D10024; color:white; "><b>Profilimi Güncelle</b></button>
                 </div>
             </div>
         }
     </div>
 </div>
+@section scripts{
+    <script>
+        function gotoupdatepasswordpage() {
+            window.location.assign("/Account/UpdatePassword")
+        }
+    </script>
+}
 

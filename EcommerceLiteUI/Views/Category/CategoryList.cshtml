@@ -28,7 +28,7 @@
                     <td>
                         <a href="/Category/Edit/@item.Id" class="btn btn-sm btn-default" style="background-color: pink; margin-right: 5px;">Düzenle</a>
                         <a href="/Category/Delete/@item.Id" class="btn btn-sm btn-default" style="background-color: darksalmon; margin-right: 5px;">Sil</a>
-                        <a href="/Category/SubCategoryList/@item.Id" class="btn btn-sm btn-default" style="background-color: palevioletred; margin-right: 5px;">Alt Kategorileri</a>
+                        <a href="/Category/SubCategoryList?id=@item.Id&IsSendFromSubCategory=true" class="btn btn-sm btn-default" style="background-color: palevioletred; margin-right: 5px;">Alt Kategorileri</a>
                         
                     </td>
                 </tr>

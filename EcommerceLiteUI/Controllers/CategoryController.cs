@@ -18,14 +18,16 @@ namespace EcommerceLiteUI.Controllers
             ViewBag.CategoryCount = allCategories.Count;
             return View(allCategories);
         }
-        public ActionResult Create(int? id)
+        public ActionResult Create(int? id, bool IsSendFromSubCategory=false)
         {
+            ViewBag.CategoryName = string.Empty;
             if (id!=null)
             {
                 Category model = new Category() 
                 { 
                     Id=id.Value
                 };
+                ViewBag.CategoryName = myCategoryRepo.GetById(id.Value).CategoryName;
                 return View(model);
             }
             return View();
@@ -57,9 +59,9 @@ namespace EcommerceLiteUI.Controllers
                 {
                     return RedirectToAction("CategoryList", "Category");
                 }
-                else if (insertResult > 0 && model.Id >0)
+                else if (insertResult > 0 && model.Id >0 )
                 {
-                    return RedirectToAction("SubCategoryList", "Category");
+                    return RedirectToAction("SubCategoryList", "Category",new { id = model.Id });
                 }
                 else
                 {

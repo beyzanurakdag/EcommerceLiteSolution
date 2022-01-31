@@ -5,6 +5,8 @@ using System.Web;
 using System.Web.Mvc;
 using EcommerceLiteBLL.Repository;
 using EcommerceLiteEntity.Models;
+using EcommerceLiteUI.Models;
+using Mapster;
 
 namespace EcommerceLiteUI.Controllers
 {
@@ -33,29 +35,27 @@ namespace EcommerceLiteUI.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Product model)
+        public ActionResult Create(ProductViewModel model)
         {
             try
             {
+                List<SelectListItem> allCategories = new List<SelectListItem>();
+                myCategoryRepo.GetAll().ToList().ForEach(x => allCategories.Add(new SelectListItem()
+                {
+                    Text = x.CategoryName,
+                    Value = x.Id.ToString()
+                }));
+                ViewBag.CategoryList = allCategories;
                 if (!ModelState.IsValid)
                 {
                     ModelState.AddModelError("", "Veri girişleri düzgün olmalıdır!");
                     return View(model);
                 }
-                int insertResult=myProductRepo.Insert(model);
-                if (insertResult>0)
-                {
-                    return RedirectToAction("ProductList", "Product");
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Ürün ekleme işleminde bir hata oluştu! Tekrar deneyiniz!");
-                    return View(model);
-                }
+                Product newProduct = model.Adapt<Product>();
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "Beklenmedik bir hata oluştu!");
+                ModelState.AddModelError("", "Beklenmedik hata oluştu!");
                 return View(model);
             }
         }

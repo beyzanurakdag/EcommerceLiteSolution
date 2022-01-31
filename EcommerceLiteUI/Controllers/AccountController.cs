@@ -383,6 +383,7 @@ namespace EcommerceLiteUI.Controllers
         [Authorize]
         public ActionResult Logout()
         {
+            Session.Clear();
             HttpContext.GetOwinContext().Authentication.SignOut();
             return RedirectToAction("Login", "Account");
         }

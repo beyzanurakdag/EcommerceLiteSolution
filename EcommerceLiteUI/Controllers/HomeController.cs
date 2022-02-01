@@ -6,6 +6,8 @@ using System.Web.Mvc;
 using EcommerceLiteBLL.Repository;
 using Mapster;
 using EcommerceLiteUI.Models;
+using EcommerceLiteEntity.Models;
+using EcommerceLiteBLL.Account;
 
 namespace EcommerceLiteUI.Controllers
 {
@@ -14,6 +16,9 @@ namespace EcommerceLiteUI.Controllers
         //Global Alan
         CategoryRepo myCategoryRepo = new CategoryRepo();
         ProductRepo myProductRepo = new ProductRepo();
+        OrderRepo myOrderRepo = new OrderRepo();
+        OrderDetailRepo myOrderDetailRepo = new OrderDetailRepo();
+        CustomerRepo myCustomerRepo = new CustomerRepo();
         public ActionResult Index()
         {
             var categoryList = myCategoryRepo.Queryable().Where(x => x.BaseCategoryId == null).Take(4).ToList();
@@ -49,14 +54,14 @@ namespace EcommerceLiteUI.Controllers
         {
             try
             {
-                var shoppingCart = Session["ShoppinCart"] as List<CartViewModel>;
+                var shoppingCart = Session["ShoppingCart"] as List<CartViewModel>;
                 if (shoppingCart==null)
                 {
                     shoppingCart = new List<CartViewModel>();
                 }
                 if (id>0)
                 {
-                    var product = myProductRepo.GetById(id).Adapt<CartViewModel>();
+                    var product = myProductRepo.GetById(id);
                     if (product ==null)
                     {
                         TempData["AddToCart"] = "Ürün eklemesi başarısız.Lütfen tekrar deneyiniz!";
@@ -81,6 +86,105 @@ namespace EcommerceLiteUI.Controllers
             {
                 TempData["AddToCart"] = "Ürün eklemesi başarısız.Lütfen tekrar deneyiniz!";
                 return RedirectToAction("Index", "Home");
+            }
+        }
+        [Authorize]
+        public ActionResult Buy()
+        {
+            try
+            {
+                var shoppingCart =
+                    Session["ShoppingCart"] as List<CartViewModel>;
+                if (shoppingCart!=null)
+                {
+                    if (shoppingCart.Count>0)
+                    {
+                        var user = MembershipTools.GetUser();
+                        var customer = myCustomerRepo.Queryable().FirstOrDefault(x => x.UserId == user.Id);
+                        Order newOrder =
+                            new Order()
+                            {
+                                CustomerTCNumber=
+                                customer.TCNumber,
+                                RegisterDate=DateTime.Now,
+                                OrderNumber="1234567"
+                            };
+                        int orderInsertResult = myOrderRepo.Insert(newOrder);
+                        if (orderInsertResult>0)
+                        {
+                            foreach (var item in shoppingCart)
+                            {
+                                OrderDetail newOrderDetail =
+                                    new OrderDetail()
+                                    {
+                                        OrderId=newOrder.Id,
+                                        ProductId=item.Id,
+                                        Discount=0,
+                                        ProductPrice=item.Price,
+                                        Quantity=item.Quantity,
+                                        RegisterDate=DateTime.Now
+                                    };
+                                if (newOrderDetail.Discount>0)
+                                {
+                                    newOrderDetail.TotalPrice = newOrderDetail.Quantity *
+                                        (newOrderDetail.ProductPrice-(newOrderDetail.ProductPrice* Convert.ToDecimal(newOrderDetail.Discount/100)));
+                                }
+                                else
+                                {
+                                    newOrderDetail.TotalPrice = newOrderDetail.Quantity * newOrderDetail.TotalPrice;
+                                }
+                                int detailInsertResult= myOrderDetailRepo.Insert(newOrderDetail);
+                                if (detailInsertResult>0)
+                                {
+                                    return RedirectToAction("Order", "Home", new { id = newOrder.Id });
+                                }
+                            }
+                        }
+                    }
+                }
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+        }
+        [Authorize]
+        public ActionResult Order(int id)
+        {
+            try
+            {
+                if (id>0)
+                {
+                    Order customerOrder = myOrderRepo.GetById(id);
+                    List<OrderDetail> orderDetails = new List<OrderDetail>();
+                    if (customerOrder!=null)
+                    {
+                        orderDetails = myOrderDetailRepo
+                            .Queryable().Where(x => x.OrderId == customerOrder.Id).ToList();
+                        foreach (var item in orderDetails)
+                        {
+                            item.Product = myProductRepo.GetById(item.ProductId);
+                        }
+                        ViewBag.OrderSuccess = "Siparişiniz başarıyla oluşturulmuştur!";
+                        return View(orderDetails);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", "Ürün bulunamadı, tekrar deneyiniz!");
+                        return View(orderDetails);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Ürün bulunamadı, tekrar deneyiniz!");
+                    return View(new List<OrderDetail>());
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Beklenmedik bir hata oluştu!");
+                return View(new List<OrderDetail>());
             }
         }
     }

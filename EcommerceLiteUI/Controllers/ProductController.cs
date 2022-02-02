@@ -144,5 +144,17 @@ namespace EcommerceLiteUI.Controllers
                 return View(model);
             }
         }
+        public ActionResult CategoryProducts()
+        {
+            try
+            {
+                var list = myCategoryRepo.GetBaseCategoriesProductCount();
+                return View(list);
+            }
+            catch (Exception ex)
+            {
+                return View();
+            }
+        }
     }
 }

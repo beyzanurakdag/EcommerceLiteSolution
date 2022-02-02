@@ -6,11 +6,14 @@ using System.Web.Mvc;
 using EcommerceLiteBLL.Account;
 using EcommerceLiteEntity.IdentityModels;
 using EcommerceLiteUI.Models;
+using EcommerceLiteBLL.Repository;
 
 namespace EcommerceLiteUI.Controllers
 {
     public class PartialsController : BaseController
     {
+        //Global Alan
+        CategoryRepo myCategoryRepo = new CategoryRepo();
         public PartialViewResult AdminSideBarResult()
         {
             //TODO:NameSurname alınacak
@@ -41,6 +44,11 @@ namespace EcommerceLiteUI.Controllers
             {
                 return PartialView("_PartialShoppingCart", shoppingCart);
             }
+        }
+        public PartialViewResult AdminSideBarCategories()
+        {
+            TempData["AllCategoriesCount"] = myCategoryRepo.Queryable().Where(x=>x.BaseCategory==null).ToList().Count;
+            return PartialView("_PartialAdminSideBarCategories");
         }
     }
 }

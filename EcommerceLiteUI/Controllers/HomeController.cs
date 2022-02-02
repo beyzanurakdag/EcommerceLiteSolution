@@ -171,8 +171,12 @@ namespace EcommerceLiteUI.Controllers
                                 {
                                     message += $"<tr><td>{myProductRepo.GetById(item.ProductId).ProductName}</td><td>{item.Quantity}</td><td>{item.TotalPrice}</td></tr>";
                                 }
+                                string siteUrl =
+                        Request.Url.Scheme + Uri.SchemeDelimiter
+                        + Request.Url.Host
+                        + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
                                 message += "</table><br/>Siparişinize ait QR kodunuz: <br/><br/>";
-                                message += $"<a href='/Home/Order/{newOrder.Id}'><img src=\"{qrUri}\" height=250px;  width=250px; class='img-thumbnail' /></a>";
+                                message += $"<a href='{siteUrl}/Home/Order/{newOrder.Id}'><img src=\"{qrUri}\" height=250px;  width=250px; class='img-thumbnail' /></a>";
                                 await SiteSettings.SendMail(new MailModel()
                                 {
                                     To = user.Email,
@@ -205,39 +209,65 @@ namespace EcommerceLiteUI.Controllers
         {
             try
             {
-                if (id>0)
+                List<OrderDetail> orderDetails =
+                      new List<OrderDetail>();
+                if (id > 0)
                 {
-                    Order customerOrder = myOrderRepo.GetById(id.Value);
-                    List<OrderDetail> orderDetails = new List<OrderDetail>();
-                    if (customerOrder!=null)
+                    Order customerOrder =
+                        myOrderRepo.GetById(id.Value);
+                    if (customerOrder != null)
                     {
-                        orderDetails = myOrderDetailRepo
-                            .Queryable().Where(x => x.OrderId == customerOrder.Id).ToList();
+                        orderDetails =
+                            myOrderDetailRepo.Queryable()
+                            .Where(x => x.OrderId == customerOrder.Id).ToList();
                         foreach (var item in orderDetails)
                         {
                             item.Product = myProductRepo.GetById(item.ProductId);
                         }
-                        ViewBag.OrderSuccess = "Siparişiniz başarıyla oluşturulmuştur!";
+                        ViewBag.OrderSuccess = "Siparişiniz başarıyla oluşturulmuştur.";
                         Session["ShoppingCart"] = null;
                         return View(orderDetails);
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Ürün bulunamadı, tekrar deneyiniz!");
+                        ModelState.AddModelError("", "Ürün bulunamadı! Tekrar deneyiniz!");
                         return View(orderDetails);
                     }
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Ürün bulunamadı, tekrar deneyiniz!");
-                    return View(new List<OrderDetail>());
+                    //-- logged in user
+                    var user = MembershipTools.GetUser();
+                    // customer
+                    var customer = myCustomerRepo.Queryable()
+                        .FirstOrDefault(x => x.UserId == user.Id);
+                    //orders
+                    var orderList = myOrderRepo.Queryable()
+                        .Where(x => x.CustomerTCNumber == customer.TCNumber).ToList();
+
+                    orderList = orderList.Where(x => x.RegisterDate >= DateTime.Now.AddMonths(-1)).ToList();
+                    //order details
+                    foreach (var item in orderList)
+                    {
+                        var detailList =
+                            myOrderDetailRepo.Queryable()
+                            .Where(x => x.OrderId == item.Id).ToList();
+                        orderDetails.AddRange(detailList);
+                    }
+                    return View(orderDetails.OrderByDescending(x=>x.RegisterDate).ToList());
+
                 }
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Beklenmedik bir hata oluştu!");
+                //ex loglanacak
                 return View(new List<OrderDetail>());
+
             }
+
         }
+
+
     }
 }

@@ -86,7 +86,7 @@
                     </div>
                     <!-- /LOGO -->
                     <!-- SEARCH BAR -->
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <div class="header-search">
                             <form>
                                 <select class="input-select">
@@ -101,8 +101,16 @@
                     </div>
                     <!-- /SEARCH BAR -->
                     <!-- ACCOUNT -->
-                    <div class="col-md-3 clearfix">
+                    <div class="col-md-4 clearfix">
                         <div class="header-ctn">
+                            <!--Order-->
+                            <div>
+                                <a href="/Home/Order">
+                                    <i class="fa fa-shopping-basket"></i>
+                                    <span>Siparişlerim</span>
+                                </a>
+                            </div>
+                            <!--/Order-->
                             <!-- Wishlist -->
                             <div>
                                 <a href="#">
@@ -113,9 +121,9 @@
                             </div>
                             <!-- /Wishlist -->
                             <!-- Cart -->
-                           @{ 
-                               Html.RenderAction("ShoppingCart", "Partials");
-                           }
+                            @{
+                                Html.RenderAction("ShoppingCart", "Partials");
+                            }
                             <!-- /Cart -->
                             <!-- Menu Toogle -->
                             <div class="menu-toggle">

@@ -35,13 +35,13 @@ namespace EcommerceLiteUI.Controllers
         [HttpGet]
         public ActionResult Create()
         {
-            List<SelectListItem> allCategories = new List<SelectListItem>();
-            myCategoryRepo.GetAll().ToList().ForEach(x => allCategories.Add(new SelectListItem()
+            List<SelectListItem> subCategories = new List<SelectListItem>();
+            myCategoryRepo.Queryable().Where(x=>x.BaseCategoryId!=null).ToList().ForEach(x => subCategories.Add(new SelectListItem()
             {
                 Text = x.CategoryName,
                 Value = x.Id.ToString()
             }));
-            ViewBag.CategoryList = allCategories;
+            ViewBag.CategoryList = subCategories;
 
             return View();
         }
@@ -51,13 +51,13 @@ namespace EcommerceLiteUI.Controllers
         {
             try
             {
-                List<SelectListItem> allCategories = new List<SelectListItem>();
-                myCategoryRepo.GetAll().ToList().ForEach(x => allCategories.Add(new SelectListItem()
+                List<SelectListItem> subCategories = new List<SelectListItem>();
+                myCategoryRepo.Queryable().Where(x => x.BaseCategoryId != null).ToList().ForEach(x => subCategories.Add(new SelectListItem()
                 {
                     Text = x.CategoryName,
                     Value = x.Id.ToString()
                 }));
-                ViewBag.CategoryList = allCategories;
+                ViewBag.CategoryList = subCategories;
                 if (!ModelState.IsValid)
                 {
                     ModelState.AddModelError("", "Veri girişleri düzgün olmalıdır!");

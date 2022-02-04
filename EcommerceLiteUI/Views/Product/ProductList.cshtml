@@ -94,6 +94,7 @@
                 @using (Html.BeginForm("Edit", "Product", FormMethod.Post,
                     new
                     {
+                        enctype="multipart/form-data",
                         @class = "form-horizontal"
                     }))
                 {

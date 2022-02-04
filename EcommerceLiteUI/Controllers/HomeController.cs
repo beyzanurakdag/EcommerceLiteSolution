@@ -94,7 +94,7 @@ namespace EcommerceLiteUI.Controllers
             }
         }
         [Authorize]
-        public async Task<ActionResult> Buy()
+        public ActionResult Buy()
         {
             try
             {
@@ -150,13 +150,16 @@ namespace EcommerceLiteUI.Controllers
                             {
                                 //QR ile email gönderilecek
                                 #region SendEmail
+                                string siteUrl = Request.Url.Scheme + Uri.SchemeDelimiter
+                  + Request.Url.Host
+                  + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
+                                siteUrl += "/Home/Order/" + newOrder.Id;
 
                                 QRCodeGenerator QRGenerator = new QRCodeGenerator();
-                                QRCodeData QRData = QRGenerator.CreateQrCode(newOrder.OrderNumber, QRCodeGenerator.ECCLevel.Q);
+                                QRCodeData QRData = QRGenerator.CreateQrCode(siteUrl, QRCodeGenerator.ECCLevel.Q);
                                 QRCode QRCode = new QRCode(QRData);
-                                Bitmap QRBitmap = QRCode.GetGraphic(64);
+                                Bitmap QRBitmap = QRCode.GetGraphic(60);
                                 byte[] bitmapArray = BitmapToByteArray(QRBitmap);
-                                string qrUri = string.Format("data:image/png;base64,{0}", Convert.ToBase64String(bitmapArray));
 
                                 List<OrderDetail> orderDetailList =
                    new List<OrderDetail>();
@@ -164,29 +167,24 @@ namespace EcommerceLiteUI.Controllers
                                     .Where(x => x.OrderId == newOrder.Id).ToList();
 
                                 string message = $"Merhaba {user.Name} {user.Surname} <br/><br/>" +
-                                                   $"{orderDetailList.Count} adet ürünlerinizin siparişini aldık.<br/><br/>" +
-                                                   $"Toplam Tutar:{orderDetailList.Sum(x => x.TotalPrice).ToString()} ₺ <br/> <br/>" +
-                                                   $"<table><tr><th>Ürün Adı</th><th>Adet</th><th>Birim Fiyat</th><th>Toplam</th></tr>";
+                   $"{orderDetailList.Count} adet ürünlerinizin siparişini aldık.<br/><br/>" +
+                   $"Toplam Tutar:{orderDetailList.Sum(x => x.TotalPrice).ToString()} ₺ <br/> <br/>" +
+                   $"<table><tr><th>Ürün Adı</th><th>Adet</th><th>Birim Fiyat</th><th>Toplam</th></tr>";
                                 foreach (var item in orderDetailList)
                                 {
                                     message += $"<tr><td>{myProductRepo.GetById(item.ProductId).ProductName}</td><td>{item.Quantity}</td><td>{item.TotalPrice}</td></tr>";
                                 }
-                                string siteUrl =
-                        Request.Url.Scheme + Uri.SchemeDelimiter
-                        + Request.Url.Host
-                        + (Request.Url.IsDefaultPort ? "" : ":" + Request.Url.Port);
-                                message += "</table><br/>Siparişinize ait QR kodunuz: <br/><br/>";
-                                message += $"<a href='{siteUrl}/Home/Order/{newOrder.Id}'><img src=\"{qrUri}\" height=250px;  width=250px; class='img-thumbnail' /></a>";
-                                await SiteSettings.SendMail(new MailModel()
+
+
+                                message += "</table><br/>Siparişinize ait QR kodunuz aşağıdadır. <br/><br/>";
+
+                                SiteSettings.SendMail(bitmapArray, new MailModel()
                                 {
-                                    To = user.Email,
-                                    Subject = "ECommerceLite - Siparişiniz alındı",
-                                    Message = message
-
+                                    To=user.Email,
+                                    Subject="EcommerceLite - Siparişinizz alındı.",
+                                    Message=message
                                 });
-
                                 #endregion
-
                                 //SendOrderMailWithQRCode(newOrder.Id);
                                 return RedirectToAction("Order", "Home", new { id = newOrder.Id });
                             }

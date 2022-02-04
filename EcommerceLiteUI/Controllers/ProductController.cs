@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using EcommerceLiteBLL.Account;
 using EcommerceLiteBLL.Repository;
 using EcommerceLiteBLL.Settings;
 using EcommerceLiteEntity.Models;
@@ -19,7 +20,7 @@ namespace EcommerceLiteUI.Controllers
         ProductRepo myProductRepo = new ProductRepo();
         CategoryRepo myCategoryRepo = new CategoryRepo();
         ProductPictureRepo myProductPictureRepo = new ProductPictureRepo();
-        public ActionResult ProductList(int page=1,string search="")
+        public ActionResult ProductList(int page = 1, string search = "", bool isNew = false)
         {
             List<Product> allProductList = new List<Product>();
             if (string.IsNullOrEmpty(search))
@@ -28,10 +29,23 @@ namespace EcommerceLiteUI.Controllers
             }
             else
             {
-                allProductList = myProductRepo.Queryable().Where(x => x.ProductName.Contains(search)).ToList();
+                allProductList =
+                    myProductRepo.Queryable()
+                    .Where(x => x.ProductName.Contains(search)).ToList();
             }
-            return View(allProductList.ToPagedList(page,3));
+
+            if (isNew)
+            {
+                allProductList = myProductRepo.GetAll();
+                allProductList = allProductList.Where(x =>
+                x.RegisterDate >= DateTime.Now.AddDays(-1)).ToList();
+
+            }
+            var user = MembershipTools.GetNameSurname();
+            LogManager.LogMessage("geldik", userInfo: user, pageInfo: "Product/ProductList");
+            return View(allProductList.ToPagedList(page, 3));
         }
+
         [HttpGet]
         public ActionResult Create()
         {
@@ -141,6 +155,9 @@ namespace EcommerceLiteUI.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Beklenmedik hata oluştu!");
+                var user = MembershipTools.GetNameSurname();
+                LogManager.LogMessage(ex.ToString(),
+                    userInfo: user, pageInfo: "Product/Create");
                 return View(model);
             }
         }
@@ -153,6 +170,9 @@ namespace EcommerceLiteUI.Controllers
             }
             catch (Exception ex)
             {
+                var user = MembershipTools.GetNameSurname();
+                LogManager.LogMessage(ex.ToString(),
+                    userInfo: user, pageInfo: "Product/CategoryProducts");
                 return View();
             }
         }
@@ -184,7 +204,9 @@ namespace EcommerceLiteUI.Controllers
             }
             catch (Exception ex)
             {
-                //geçici
+                var user = MembershipTools.GetNameSurname();
+                LogManager.LogMessage(ex.ToString(),
+                    userInfo: user, pageInfo: "Product/Edit");
                 return RedirectToAction("ProductList", "Product");
             }
         }

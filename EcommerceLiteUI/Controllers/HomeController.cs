@@ -181,7 +181,7 @@ namespace EcommerceLiteUI.Controllers
                                 SiteSettings.SendMail(bitmapArray, new MailModel()
                                 {
                                     To=user.Email,
-                                    Subject="EcommerceLite - Siparişinizz alındı.",
+                                    Subject="EcommerceLite - Siparişiniz  alındı.",
                                     Message=message
                                 });
                                 #endregion

@@ -17,7 +17,7 @@ namespace EcommerceLiteUI.Models
         [Required]
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Ürün adının uzunluğu 2 ile 50 karakter aralığında olmalıdır!")]
         public string ProductName { get; set; }
-        [StringLength(500, ErrorMessage = "Ürün açlıklamasının uzunluğu en fazla 500 karakter olmalıdır!")]
+        [StringLength(500, ErrorMessage = "Ürün açıklamasının uzunluğu en fazla 500 karakter olmalıdır!")]
         public string Description { get; set; }
 
         [StringLength(8, ErrorMessage = "Ürün kodunun uzunluğu en fazla 8 karakter olmalıdır!")]
